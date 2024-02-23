@@ -1,4 +1,3 @@
-
 import pickle
 from _context import *
 from src.rl import ActorCriticWaterMaze
@@ -62,9 +61,7 @@ def get_actor_critic_ID(word):
         print("The given letter was not found in the string.")
     return result
 
-######### Memristor Emulations ###########
-plt.close('all')
-
+######### Create Memristor Emulations ###########
 n_states=27 #number of memristors
 actions=8
 critics=1
@@ -72,8 +69,7 @@ critics=1
 #init class for each memristor
 memristors=[[Memristor()] for i in range(n_states)] #memristors[state][0=Critic or 1=Actor][if actor which of two actions] #memristors=[[[],[]]]*n_states does not work!!!!
 
-
-directory='../memristor_data'
+directory='memristor_data/'
 
 files=os.listdir(directory)
 # filenames=fnmatch.filter(files,'*.json')
@@ -147,8 +143,8 @@ for i,filename in enumerate(filenames):
             c_idx += 1
 
 #Print all G0 and G1 of Memristors
-for i in range(n_states):
-    print(f'Device {i}:','ID:', memristors[i][0].ID)
+# for i in range(n_states):
+#     print(f'Device {i}:','ID:', memristors[i][0].ID)
             
 
 #################################################
@@ -325,7 +321,7 @@ if __name__ == '__main__':
                                             # Update Actor Weights with Multiprocessing
                                             if n_jobs_actor>0: #check if empty
                                                 rands_a=np.random.randint(0,1000,len(nonzero_indices_a[0])) # initialize random numbers to ensure consistent random number generation in multiple processes
-                                                iter_a=executor.map(update_actor_complete_indiv_memristor,rands_a,nonzero_indices_a[0],nonzero_indices_a[1],net.w_a[nonzero_indices_a],delta_theta[nonzero_indices_a],chunksize=n_jobs//n_processes+1)
+                                                iter_a=executor.map(update_actor_complete_indiv_memristor,rands_a,nonzero_indices_a[0],nonzero_indices_a[1],net.w_a[nonzero_indices_a],delta_theta[nonzero_indices_a],chunksize=n_jobs_actor//n_processes+1)
                                                 new_a=np.fromiter(iter_a, dtype=float, count=-1)
                                                 net.w_a[nonzero_indices_a] = new_a
                                             
@@ -367,7 +363,7 @@ if __name__ == '__main__':
                                     environments.append(env)
                                     critic_weights_list.append(net.w_v)
                                     actor_weights_list.append(net.w_a)
-                                    
+
                                     # Mean over last episodes
                                     mean_final_critic_weights.append(mean_w_v)
                                     mean_final_actor_weights.append(mean_w_a)
@@ -427,5 +423,3 @@ if __name__ == '__main__':
                                     fullpath=f"{path}{name}"
                                     results_save = pd.DataFrame.from_dict(results)
                                     results_save.to_pickle(fullpath)
-                                    # with open(fullpath+'_figures', 'wb') as f: 
-                                    #     pickle.dump(figs, f)
