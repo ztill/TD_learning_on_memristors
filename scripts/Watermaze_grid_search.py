@@ -23,9 +23,10 @@ import json
 def update_actor_complete_indiv_memristor(rands_a,i,j,theta,d_t):
     np.random.seed(rands_a)
     # print("a_weight:",i,j, 'Rand. Nr:',np.random.normal(0.5,1),flush=True)
-    #Multiple Memristors
+
+    # Using Multiple Memristors
     theta, _ = m[mapping_actor[i,j]][0].update_syn_w_emulated(theta, d_t, update_type=RL_settings['update_type'], noise_type=RL_settings['noise_type'], pulse_calc=RL_settings['pulse_calc'])
-    #1 Memristor
+    # Using one Memristor (Here m[3][0])
     #theta, _ = m[3][0].update_syn_w_emulated(theta, d_t, update_type=RL_settings['update_type'], noise_type=RL_settings['noise_type'], pulse_calc=RL_settings['pulse_calc'])
     return theta
     
@@ -41,7 +42,6 @@ def get_device_name(word):
         # Extract the part of the string starting from the given letter
         result = word[index_start+1:index_stop]
 
-        # print("Part of the string starting with the given letter:", result)
     else:
         print("The given letter was not found in the string.")
     return result
@@ -55,8 +55,6 @@ def get_actor_critic_ID(word):
     if (index_start != -1) or (index_stop != -1):
         # Extract the part of the string starting from the given letter
         result = word[index_start+2:index_stop]
-
-        # print("Part of the string starting with the given letter:", result)
     else:
         print("The given letter was not found in the string.")
     return result
@@ -72,9 +70,7 @@ memristors=[[Memristor()] for i in range(n_memristors)] #memristors[state][0=Cri
 directory='memristor_data/indexing_watermaze/'
 
 files=os.listdir(directory)
-# filenames=fnmatch.filter(files,'*.json')
 filenames=sorted(fnmatch.filter(files,'*.json'),key=get_actor_critic_ID)
-
 
 c_idx, a_idx = 0, 0
 
@@ -112,14 +108,6 @@ for i,filename in enumerate(filenames):
         'count_direction': 'up',
         'cycle': None,
         
-
-        # --Data (for Run not needed)--
-        # 'Gset':0,
-        # 'Greset':0,
-        # 'pset':0,
-        # 'preset':0,
-        # 'Gset_norm':0,
-        # 'Greset_norm':0,
     }
     
     file_ID = get_actor_critic_ID(filename) 
@@ -133,18 +121,11 @@ for i,filename in enumerate(filenames):
 
             with open(pathfull) as json_data:
                 data = json.load(json_data)
-                #print(data)
 
             params.update((k, data[k]) for k in params.keys() & data.keys()) #update all values in params with characterization
             memristors[critic_idx][0].update_params(params)
             x=np.arange(memristors[critic_idx][0].N+1)
-            # ax1.plot(x,memristors[critic_idx][0].Lin_Exp_Set(x),label=f'SET s{critic_idx}',c=f'C{critic_idx}')
-            # ax1.plot(x,memristors[critic_idx][0].Lin_Exp_Reset(x),label=f'RESET s{critic_idx}',c=f'C{critic_idx}')
             c_idx += 1
-
-#Print all G0 and G1 of Memristors
-# for i in range(n_memristors):
-#     print(f'Device {i}:','ID:', memristors[i][0].ID)
             
 
 #################################################
@@ -160,12 +141,10 @@ path='/Users/till/Downloads/grid_search/random_mapping_fine/'
 # Name of Savefile
 name=f'Fine_Grid_Search_50k_step1p5_LR0p07_gamma0p975_multiprocessing_random_mapping_5'
 
-
 # Environment specs
 no_rbf = 11
 no_actions = 8
 no_states = no_rbf**2
-
 
 #--Random mapping of actor weights to 27 memristors----
 seed=15 #15 is seed with very homogeneous distribution of numbers in 0-26
