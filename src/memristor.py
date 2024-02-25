@@ -1,5 +1,5 @@
 from _context import *
-# sys.path.append("../../optolab_control_software")
+# sys.path.append("../../optolab_control_software") 
 # from meas import *
 import pandas as pd
 import numpy as np
@@ -49,7 +49,7 @@ class Memristor:
     #--Noise parameters--
     #Constant
     std=0.2/6
-    #Separate for Set,Reset
+    #Separate for Set,Reset (1 Parameter for all cycles)
     std_noise_set=0.05 
     std_noise_reset=0.05
     #Per Cycle
@@ -73,7 +73,7 @@ class Memristor:
     # -------------------------------------------------
         # Waveforms and Measurment Setting Read and Write
     # -------------------------------------------------
-    wf_write = { # TODO: adapt to new code
+    wf_write = {
             'V' : [1,-1], # pulse voltages
             'n' : [100,100],   # pulse repetitions
             'W' : [10e-6,10e-6],     # pulse widths
@@ -85,18 +85,8 @@ class Memristor:
             'output_impedance':1e6,
             # 'chs_awg':[1,2]
         }
-    # wf_read = {     # Read Waveform - same read as in characterization
-    #         'V' : [0], # pulse voltages
-    #         'n' : [0],   # pulse repetitions
-    #         'W' : [wf_write['W'][0]],     # pulse widths
-    #         'T' : wf_write['T'],     # pulse period
-    #         'read_offset' : True,
-    #         'read_V' : wf_write['read_V'],
-    #         # 'srate':1e6,
-    #         'spp':wf_write['spp'],
-    #     }
-
-    wf_read = {     # Read Waveform - 20ms read ->1/50Hz for lower noise
+    
+    wf_read = {     # Read Waveform 
             'V' : [0], # pulse voltages
             'n' : [1],   # pulse repetitions
             'W' : [1e-3],     # pulse widths
