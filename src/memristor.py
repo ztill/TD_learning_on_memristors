@@ -341,17 +341,10 @@ class Memristor:
 
         #initial guess
         x0=self.Pset_beta(G,beta=0.015) #fixed zeta (here beta) that it does not become infinite close to G=1
-        # print('G',G,'G_',G_,'x0',x0,'zeta',zeta)        
-
-        # print('x0:',x0)
         
         f_zero=lambda x : self.Lin_Exp_Set_4params_zero(x,y=G,alpha=alpha,beta=beta,gamma=gamma,zeta=zeta,clip=False)
         f_zero_prime=lambda x : self.Lin_Exp_Set_4params_zero_prime(x,alpha=alpha,beta=beta,gamma=gamma,zeta=zeta)
-        # f_zero_prime2=lambda x : self.Lin_Exp_Set_zero_prime2(x,beta=beta,alpha=alpha)
-        # try:
         result=optimize.newton(f_zero,x0=x0,fprime=f_zero_prime,tol=1e-3,maxiter=50) #Newton/Newton–Raphson method to find zero -> here to find pulse for given conductance
-        # except:
-        #     print('G',G,'G_',G_,'x0',x0,'zeta',zeta)
             
         return result
     
@@ -383,14 +376,11 @@ class Memristor:
 
         #initial guess
         x0=self.Preset_beta(G,beta=0.015) #fixed zeta (here beta) that it does not become infinite close to G=1
-        # print('x0:',x0)
 
         f_zero=lambda x : self.Lin_Exp_Reset_4params_zero(x,y=G,alpha=alpha,beta=beta,gamma=gamma,zeta=zeta,clip=False) #do not clip as this is only to find inverse function
         f_zero_prime=lambda x : self.Lin_Exp_Reset_4params_zero_prime(x,alpha=alpha,beta=beta,gamma=gamma,zeta=zeta)
-        # f_zero_prime2=lambda x : self.Lin_Exp_Set_zero_prime2(x,beta=beta,alpha=alpha)
-        
         result=optimize.newton(f_zero,x0=x0,fprime=f_zero_prime,tol=1e-3,maxiter=50) #Newton/Newton–Raphson method to find zero -> here to find pulse for given conductance
-        # print(result)
+
         return result
 
     #-----Inverse for Linexp with 2 Parameters---
@@ -413,13 +403,11 @@ class Memristor:
         #initial guess (use linear function btw. 0 and 1 in N steps)
         # a=1/self.N
         x0=self.Pset_beta(G,beta=0.015)
-        # print(x0)
         f_zero=lambda x : self.Lin_Exp_Set_zero(x,y=G,beta=beta,alpha=alpha)
         f_zero_prime=lambda x : self.Lin_Exp_Set_zero_prime(x,beta=beta,alpha=alpha)
         f_zero_prime2=lambda x : self.Lin_Exp_Set_zero_prime2(x,beta=beta,alpha=alpha)
 
         result=optimize.newton(f_zero,fprime=f_zero_prime,x0=x0,tol=1e-3,maxiter=50) #Newton/Newton–Raphson method to find zero -> here to find pulse for given conductance
-        # print(result)
         return result
     
     def Lin_Exp_Reset_zero_prime(self, x,alpha,beta): #First derivative of that function
@@ -448,7 +436,7 @@ class Memristor:
         f_zero_prime2=lambda x : self.Lin_Exp_Reset_zero_prime2(x,beta=beta,alpha=alpha)
         return optimize.newton(f_zero,fprime=f_zero_prime,x0=x0,tol=1e-3,maxiter=50) #Newton/Newton–Raphson method to find zero -> here to find pulse for given conductance
    
-   #Calc Number of Pulses between two conductances
+    #Calc Number of Pulses between two conductances
     def n_pulses(self,G_i,G_f,clipped=True):
         """
         Get delta pulse number from current and new conductance values.
@@ -461,7 +449,7 @@ class Memristor:
         else:
             return self.Lin_Exp_Reset_INV(G_f) - self.Lin_Exp_Reset_INV(G_i)
         
-       #Calc Number of Pulses between two conductances for linear update
+    #Calc Number of Pulses between two conductances for linear update
     def n_pulses_lin(self,G_i,G_f,clipped=True):
         """
         Get delta pulse number from current and new conductance values.
@@ -591,11 +579,6 @@ class Memristor:
         :delta_pulse: number of pulses to be used
         """
 
-        # if (current_w==1 and update_val>0) or (current_w==0 and update_val<0):
-        #     print('weird update: w=',current_w,'delta w=',update_val)
-
-
-        # print(update_type,noise_type)
         ideal_new_weight=np.clip(current_w + update_val,0,1)
         if ideal_new_weight>1:
             print('clipped weight is >1',ideal_new_weight)
@@ -608,7 +591,6 @@ class Memristor:
                 new_pulse_lin = self.N*(current_w + update_val)
                 delta_pulse = np.round(new_pulse_lin - current_pulse) #=self.N*update_val
                
-
             elif pulse_calc == 'model':
                 current_pulse = self.Lin_Exp_Set_INV(current_w)
                 new_pulse = self.Lin_Exp_Set_INV(current_w + update_val)
@@ -616,21 +598,16 @@ class Memristor:
 
             #1.) Update Without Noise
             if update_type=='ideal': #Ideal update
-                #print('ideal')
                 new_weight = ideal_new_weight
             elif update_type=='model': #Update on model
-                # print('model')
                 current_pulse = self.Lin_Exp_Set_INV(current_w)
                 new_weight = self.Lin_Exp_Set(current_pulse + delta_pulse) 
             elif update_type=='random cycle': #Update on drawn model of cycle
-                #print('random cycle')
                 cycle_max = len(self.std_noise_set_cycle)
                 if (self.sign_counter == 0) and (self.cycle == None):
                     self.cycle=np.random.randint(0, cycle_max-1) # draw random cycle (only once)
                     self.sign_counter += 1
-                    # print('ID: ', self.ID, 'Random cycle: ', self.cycle, 'Counter: ', self.sign_counter)
                 elif (self.update_sign * delta_pulse < 0):
-                    # print('Update sign: ', self.update_sign, ', Delta pulse: ', delta_pulse, ', Sign*pulse: ', self.update_sign * delta_pulse) 
                     #Counter is at 2, thus new cycle needs to be drawn
                     if (self.sign_counter == 2) and (self.cycle>0) and (self.cycle<cycle_max-1):
                         self.sign_counter = 1 #Reset counter
@@ -648,16 +625,12 @@ class Memristor:
                             self.cycle = self.cycle + 1
                     else: #There is a sign change, but counter is not yet at 2
                         self.sign_counter += 1
-                    # print('ID: ', self.ID, 'Cycle: ', self.cycle, 'Count direction: ', self.count_direction, 'Counter: ', self.sign_counter)
-                # else: #There was no sign change 
-                    # print('ID: ', self.ID, 'Cycle: ', self.cycle, 'Count direction: ', self.count_direction, 'Counter: ', self.sign_counter)
-
+                    
                 alpha_cycle=self.alpha_noise_set[self.cycle]
                 beta_cycle=self.beta_noise_set[self.cycle]
                 gamma_cycle=self.gamma_noise_set[self.cycle]
                 zeta_cycle=self.zeta_noise_set[self.cycle]
                 std_cycle=self.std_noise_set_cycle[self.cycle]
-                        #print('current_w',current_w,'cycle',cycle,'alpha_cycle',alpha_cycle,'beta_cycle',beta_cycle,'gamma_cycle',gamma_cycle,'zeta_cycle',zeta_cycle,'std',std_cycle)
                 current_pulse_cycle_model=self.Lin_Exp_Set_4params_INV(current_w, alpha=alpha_cycle, beta=beta_cycle,gamma=gamma_cycle, zeta=zeta_cycle,clip='Glim') #Get current pulse p0 for cycle model instead
                 new_weight = self.Lin_Exp_Set_4params(current_pulse_cycle_model + delta_pulse,alpha=alpha_cycle,beta=beta_cycle,gamma=gamma_cycle,zeta=zeta_cycle,clip=False) #Get new weight from update on drawn model for cycle, do not clip to be closer to memristor
             
@@ -665,18 +638,13 @@ class Memristor:
 
             #2.) Add Noise if desired
             if noise_type=='constant': # Add noise with constand std. dev.
-                #print('const noise')
                 new_weight = np.clip(np.random.normal(new_weight,self.std),0,1)
             elif noise_type=='set reset separate': # Add noise for set and reset reparate
-                #print('noise')
                 new_weight = np.clip(np.random.normal(new_weight,self.std_noise_set),0,1)
             elif noise_type=='cycle noise': # Add noise from drawn cycle
-                #print('cycle noise')
                 assert update_type=='random cycle', 'update_type must be "random cycle" to use cycle noise'
                 new_weight = np.clip(np.random.normal(new_weight,std_cycle),0,1) 
-                # print(std_cycle) 
             else:
-                # print('no noise')
                 new_weight=np.clip(new_weight,0,1)
         # negative update (does not update negatively if current_w is already at zero - no negative weights)
         elif update_val < 0.0 and current_w > 0.0:
@@ -695,7 +663,6 @@ class Memristor:
             if update_type=='ideal': #Ideal update
                 new_weight = ideal_new_weight
             elif update_type=='model': #Update on model
-                # print('model')
                 current_pulse = self.Lin_Exp_Reset_INV(current_w)
                 new_weight = self.Lin_Exp_Reset(current_pulse + delta_pulse) 
             elif update_type=='random cycle': #Update on drawn model of cycle
@@ -703,9 +670,7 @@ class Memristor:
                 if (self.sign_counter == 0) and (self.cycle == None):
                     self.cycle=np.random.randint(0, cycle_max-1) # draw random cycle (only once)
                     self.sign_counter += 1
-                    # print('ID: ', self.ID, 'Random cycle: ', self.cycle, 'Counter: ', self.sign_counter)
                 elif (self.update_sign * delta_pulse < 0):
-                    # print('Update sign: ', self.update_sign, ', Delta pulse: ', delta_pulse, ', Sign*pulse: ', self.update_sign * delta_pulse)
                     #Counter is at 2, thus new cycle needs to be drawn
                     if (self.sign_counter == 2) and (self.cycle>0) and (self.cycle<cycle_max-1):
                         self.sign_counter = 1 #Reset counter
@@ -723,16 +688,12 @@ class Memristor:
                             self.cycle = self.cycle + 1
                     else: #There is a sign change, but counter is not yet at 2
                         self.sign_counter += 1
-                    # print('ID: ', self.ID, 'Cycle: ', self.cycle, 'Count direction: ', self.count_direction, 'Counter: ', self.sign_counter)
-                # else: #There was no sign change 
-                    # print('ID: ', self.ID, 'Cycle: ', self.cycle, 'Count direction: ', self.count_direction, 'Counter: ', self.sign_counter)
-
+                    
                 alpha_cycle=self.alpha_noise_reset[self.cycle]
                 beta_cycle=self.beta_noise_reset[self.cycle]
                 gamma_cycle=self.gamma_noise_reset[self.cycle]
                 zeta_cycle=self.zeta_noise_reset[self.cycle]
                 std_cycle=self.std_noise_reset_cycle[self.cycle]
-                # print('current_w',current_w,'cycle',cycle,'alpha_cycle',alpha_cycle,'beta_cycle',beta_cycle,'gamma_cycle',gamma_cycle,'zeta_cycle',zeta_cycle,'std',std_cycle)
                 current_pulse_cycle_model=self.Lin_Exp_Reset_4params_INV(current_w, alpha=alpha_cycle, beta=beta_cycle,gamma=gamma_cycle, zeta=zeta_cycle,clip='Glim') #Get current pulse p0 for cycle model instead
                 new_weight = self.Lin_Exp_Reset_4params(current_pulse_cycle_model + delta_pulse,alpha=alpha_cycle,beta=beta_cycle,gamma=gamma_cycle,zeta=zeta_cycle,clip=False) #Get new weight from update on drawn model for cycle
             
@@ -746,13 +707,12 @@ class Memristor:
             elif noise_type=='cycle noise': # Add noise from drawn cycle
                 assert update_type=='random cycle', 'update_type must be "random cycle" to use cycle noise'
                 new_weight = np.clip(np.random.normal(new_weight,std_cycle),0,1)
-                # print(std_cycle) 
             else:
                 new_weight=np.clip(new_weight,0,1)
         elif update_val==0.0 or update_val==-0.0: #new to reduce unnessesary function calls
             new_weight=current_w
             delta_pulse=0
-        elif (current_w==1 and update_val>0) or (current_w==0 and update_val<0): #new
+        elif (current_w==1 and update_val>0) or (current_w==0 and update_val<0): 
             new_weight=current_w
             delta_pulse=0
         else: #if something wrong
@@ -787,13 +747,7 @@ class Memristor:
                 current_pulse_lin = self.N*current_w_actual
                 new_pulse_lin = self.N*(current_w_actual + update_val)
                 delta_pulse = np.round(new_pulse_lin - current_pulse_lin) #=self.N*update_val
-                #The following two lines are just for refernce  
-                # new_pulse = self.Lin_Exp_Set_INV(current_w_actual + update_val)
-                # delta_pulse_mod = np.round(new_pulse - current_pulse)
-                # print("Pulse difference of 'linear' to 'model' update  ", int(delta_pulse-delta_pulse_mod))
-                #print("current pulse lin: ", current_pulse_lin, " new pulse: ", new_pulse_lin)
-                #print("current pulse (model): ", current_pulse, " new pulse (model): ", new_pulse)
-
+                
             elif pulse_calc == 'model':
                 current_pulse = self.Lin_Exp_Set_INV(current_w_actual)
                 new_pulse = self.Lin_Exp_Set_INV(current_w_actual + update_val)
@@ -801,21 +755,16 @@ class Memristor:
 
             #1.) Update Without Noise
             if update_type=='ideal': #Ideal update
-                #print('ideal')
                 new_weight = ideal_new_weight
             elif update_type=='model': #Update on model
-                #print('model')
                 current_pulse = self.Lin_Exp_Set_INV(current_w_actual)
                 new_weight = self.Lin_Exp_Set(current_pulse + delta_pulse) 
             elif update_type=='random cycle': #Update on drawn model of cycle
-                #print('random cycle')
                 cycle_max = len(self.std_noise_set_cycle)
                 if (self.sign_counter == 0) and (self.cycle == None):
                     self.cycle=np.random.randint(0, cycle_max-1) # draw random cycle (only once)
                     self.sign_counter += 1
-                    # print('ID: ', self.ID, 'Random cycle: ', self.cycle, 'Counter: ', self.sign_counter)
                 elif (self.update_sign * delta_pulse < 0):
-                    # print('Update sign: ', self.update_sign, ', Delta pulse: ', delta_pulse, ', Sign*pulse: ', self.update_sign * delta_pulse) 
                     #Counter is at 2, thus new cycle needs to be drawn
                     if (self.sign_counter == 2) and (self.cycle>0) and (self.cycle<cycle_max-1):
                         self.sign_counter = 1 #Reset counter
@@ -833,16 +782,12 @@ class Memristor:
                             self.cycle = self.cycle + 1
                     else: #There is a sign change, but counter is not yet at 2
                         self.sign_counter += 1
-                    # print('ID: ', self.ID, 'Cycle: ', self.cycle, 'Count direction: ', self.count_direction, 'Counter: ', self.sign_counter)
-                # else: #There was no sign change 
-                    # print('ID: ', self.ID, 'Cycle: ', self.cycle, 'Count direction: ', self.count_direction, 'Counter: ', self.sign_counter)
-
+                    
                 alpha_cycle=self.alpha_noise_set[self.cycle]
                 beta_cycle=self.beta_noise_set[self.cycle]
                 gamma_cycle=self.gamma_noise_set[self.cycle]
                 zeta_cycle=self.zeta_noise_set[self.cycle]
                 std_cycle=self.std_noise_set_cycle[self.cycle]
-                # print('current_w_actual',current_w_actual,'cycle',cycle,'alpha_cycle',alpha_cycle,'beta_cycle',beta_cycle,'gamma_cycle',gamma_cycle,'zeta_cycle',zeta_cycle,'std',std_cycle)
                 current_pulse_cycle_model=self.Lin_Exp_Set_4params_INV(current_w_actual, alpha=alpha_cycle, beta=beta_cycle,gamma=gamma_cycle, zeta=zeta_cycle,clip='Glim') #Get current pulse p0 for cycle model instead
                 new_weight = self.Lin_Exp_Set_4params(current_pulse_cycle_model + delta_pulse,alpha=alpha_cycle,beta=beta_cycle,gamma=gamma_cycle,zeta=zeta_cycle,clip=False) #Get new weight from update on drawn model for cycle, do not clip to be closer to memristor
             
@@ -850,18 +795,13 @@ class Memristor:
 
             #2.) Add Noise if desired
             if noise_type=='constant': # Add noise with constand std. dev.
-                #print('const noise')
                 new_weight = np.clip(np.random.normal(new_weight,self.std),0,1)
             elif noise_type=='set reset separate': # Add noise for set and reset reparate
-                #print('noise')
                 new_weight = np.clip(np.random.normal(new_weight,self.std_noise_set),0,1)
             elif noise_type=='cycle noise': # Add noise from drawn cycle
-                #print('cycle noise')
                 assert update_type=='random cycle', 'update_type must be "random cycle" to use cycle noise'
-                new_weight = np.clip(np.random.normal(new_weight,std_cycle),0,1) 
-                # print(std_cycle) 
+                new_weight = np.clip(np.random.normal(new_weight,std_cycle),0,1)                
             else:
-                # print('no noise')
                 new_weight=np.clip(new_weight,0,1)
         # negative update (does not update negatively if current_w_actual is already at zero - no negative weights)
         elif update_val < 0.0 and current_w_actual > 0.0:
@@ -871,13 +811,7 @@ class Memristor:
                 current_pulse_lin = self.N*current_w_actual
                 new_pulse_lin = self.N*(current_w_actual + update_val)
                 delta_pulse = np.round(new_pulse_lin - current_pulse_lin)
-                #The following two lines are just for reference  
-                # new_pulse = self.Lin_Exp_Reset_INV(current_w_actual + update_val)
-                # delta_pulse_mod = np.round(new_pulse - current_pulse)
-                # print("Pulse difference of 'linear' to 'model' update  ", int(delta_pulse-delta_pulse_mod))
-                #print("current pulse lin: ", current_pulse_lin, " new pulse: ", new_pulse_lin)
-                #print("current pulse (model): ", current_pulse, " new pulse (model): ", new_pulse
-            
+                
             elif pulse_calc == 'model':
                 current_pulse = self.Lin_Exp_Reset_INV(current_w_actual)
                 new_pulse = self.Lin_Exp_Reset_INV(current_w_actual + update_val)
@@ -894,9 +828,7 @@ class Memristor:
                 if (self.sign_counter == 0) and (self.cycle == None):
                     self.cycle=np.random.randint(0, cycle_max-1) # draw random cycle (only once)
                     self.sign_counter += 1
-                    # print('ID: ', self.ID, 'Random cycle: ', self.cycle, 'Counter: ', self.sign_counter)
                 elif (self.update_sign * delta_pulse < 0):
-                    # print('Update sign: ', self.update_sign, ', Delta pulse: ', delta_pulse, ', Sign*pulse: ', self.update_sign * delta_pulse)
                     #Counter is at 2, thus new cycle needs to be drawn
                     if (self.sign_counter == 2) and (self.cycle>0) and (self.cycle<cycle_max-1):
                         self.sign_counter = 1 #Reset counter
@@ -914,16 +846,12 @@ class Memristor:
                             self.cycle = self.cycle + 1
                     else: #There is a sign change, but counter is not yet at 2
                         self.sign_counter += 1
-                    # print('ID: ', self.ID, 'Cycle: ', self.cycle, 'Count direction: ', self.count_direction, 'Counter: ', self.sign_counter)
-                # else: #There was no sign change 
-                    # print('ID: ', self.ID, 'Cycle: ', self.cycle, 'Count direction: ', self.count_direction, 'Counter: ', self.sign_counter)
-
+                    
                 alpha_cycle=self.alpha_noise_reset[self.cycle]
                 beta_cycle=self.beta_noise_reset[self.cycle]
                 gamma_cycle=self.gamma_noise_reset[self.cycle]
                 zeta_cycle=self.zeta_noise_reset[self.cycle]
                 std_cycle=self.std_noise_reset_cycle[self.cycle]
-                # print('current_w_actual',current_w_actual,'cycle',cycle,'alpha_cycle',alpha_cycle,'beta_cycle',beta_cycle,'gamma_cycle',gamma_cycle,'zeta_cycle',zeta_cycle,'std',std_cycle)
                 current_pulse_cycle_model=self.Lin_Exp_Reset_4params_INV(current_w_actual, alpha=alpha_cycle, beta=beta_cycle,gamma=gamma_cycle, zeta=zeta_cycle,clip='Glim') #Get current pulse p0 for cycle model instead
                 new_weight = self.Lin_Exp_Reset_4params(current_pulse_cycle_model + delta_pulse,alpha=alpha_cycle,beta=beta_cycle,gamma=gamma_cycle,zeta=zeta_cycle,clip=False) #Get new weight from update on drawn model for cycle
             
@@ -936,8 +864,7 @@ class Memristor:
                 new_weight = np.clip(np.random.normal(new_weight,self.std_noise_reset),0,1)
             elif noise_type=='cycle noise': # Add noise from drawn cycle
                 assert update_type=='random cycle', 'update_type must be "random cycle" to use cycle noise'
-                new_weight = np.clip(np.random.normal(new_weight,std_cycle),0,1)
-                # print(std_cycle) 
+                new_weight = np.clip(np.random.normal(new_weight,std_cycle),0,1) 
             else:
                 new_weight=np.clip(new_weight,0,1)
         elif update_val==0.0 or update_val==-0.0: #new to reduce unnessesary function calls
@@ -984,8 +911,6 @@ class Memristor:
 
         m.set_wf_read_prepend(self.meas_dict_read['device_src'], self.wf_write, self.meas_dict_read['device_ch']) #device
         m.set_wf_read_prepend(self.meas_dict_read['ref_src'], self.wf_write, self.meas_dict_read['ref_ch']) #reference signal
-        
-        #TODO: set gain -> in meas_AWG
 
         #Init arrays
         pset = np.array([]) 
@@ -1079,13 +1004,9 @@ class Memristor:
 
         self.N=N
 
-        #return (1/np.array(results['R_mean'][0])-self.G0)/(self.G1-self.G0)
-
         # Get Limits of Conductance
         self.G0=Gset[pset==0].mean()
         self.G1=Gset[pset==N].mean()
-        # print(self.G0*1e6)
-        # print(self.G1*1e6)
 
         #Subtract G0
         Gset=(Gset-self.G0)
@@ -1095,8 +1016,7 @@ class Memristor:
         Gset_norm=Gset/(self.G1-self.G0)
         Greset_norm=Greset/(self.G1-self.G0)
 
-
-        #Fit -TODO: if fit fails do not overwrite params
+        #Fit 
         popt_s, pcov_s = curve_fit(self.Lin_Exp_Set, pset, Gset_norm,p0=[-0.005,0.05], maxfev=100000) 
         popt_r, pcov_r = curve_fit(self.Lin_Exp_Reset, preset, Greset_norm,p0=[-0.005,0.05], maxfev=100000)
 
@@ -1105,7 +1025,6 @@ class Memristor:
         self.alpha_reset=popt_r[0]
         self.beta_reset=popt_r[1]
         
-
         if plot:
             x=np.arange(N)
             fig,ax=plt.subplots()
@@ -1141,13 +1060,9 @@ class Memristor:
 
         self.N=N
 
-        #return (1/np.array(results['R_mean'][0])-self.G0)/(self.G1-self.G0)
-
         # Get Limits of Conductance
         self.G0=Gset[pset==0].mean()
         self.G1=Gset[pset==N].mean()
-        # print(self.G0*1e6)
-        # print(self.G1*1e6)
 
         #Subtract G0
         Gset=(Gset-self.G0)
@@ -1156,7 +1071,6 @@ class Memristor:
         #Normalize
         Gset_norm=Gset/(self.G1-self.G0)
         Greset_norm=Greset/(self.G1-self.G0)
-
 
         #Fit
         popt_s, pcov_s = curve_fit(self.Gset_beta, pset, Gset_norm,p0=0.03,bounds=(0, 1)) #fit beta in range [0,1] (enough) start guess 0
@@ -1168,7 +1082,6 @@ class Memristor:
         #set not used params to 0
         self.alpha_set=0
         self.alpha_reset=0
-
 
         if plot:
             x=np.arange(N)
@@ -1204,13 +1117,9 @@ class Memristor:
 
             self.N=N
 
-            #return (1/np.array(results['R_mean'][0])-self.G0)/(self.G1-self.G0)
-
             # Get Limits of Conductance
             self.G0=Gset[pset==0].mean()
             self.G1=Gset[pset==N].mean()
-            # print(self.G0*1e6)
-            # print(self.G1*1e6)
 
             #Subtract G0
             Gset=(Gset-self.G0)
@@ -1219,7 +1128,6 @@ class Memristor:
             #Normalize
             Gset_norm=Gset/(self.G1-self.G0)
             Greset_norm=Greset/(self.G1-self.G0)
-
 
             #Fit
             popt_s, pcov_s = curve_fit(self.Gset_alpha_beta, pset, Gset_norm,p0=[0.4,0.002]) 
@@ -1230,7 +1138,6 @@ class Memristor:
             self.alpha_reset=popt_r[0]
             self.beta_reset=popt_r[1]
             
-
             if plot:
                 x=np.arange(N)
                 fig,ax=plt.subplots()
@@ -1265,13 +1172,9 @@ class Memristor:
 
             self.N=N
 
-            #return (1/np.array(results['R_mean'][0])-self.G0)/(self.G1-self.G0)
-
             # Get Limits of Conductance
             self.G0=Gset[pset==0].mean()
             self.G1=Gset[pset==N].mean()
-            # print(self.G0*1e6)
-            # print(self.G1*1e6)
 
             #Subtract G0
             Gset=(Gset-self.G0)
@@ -1280,7 +1183,6 @@ class Memristor:
             #Normalize
             Gset_norm=Gset/(self.G1-self.G0)
             Greset_norm=Greset/(self.G1-self.G0)
-
 
             #Fit
             popt_s, pcov_s = curve_fit(self.Lin_Exp_Set2, pset, Gset_norm,p0=[-0.005,0.05,1]) 
@@ -1295,7 +1197,6 @@ class Memristor:
             self.beta_reset=popt_r[1]
             self.gamma_reset=popt_r[2]
             print("alpha r: ", self.alpha_reset, "beta r: ", self.beta_reset, "gamma r: ", self.gamma_reset)
-
 
             if plot:
                 x=np.arange(N)
@@ -1332,13 +1233,9 @@ class Memristor:
 
         self.N=N
 
-        #return (1/np.array(results['R_mean'][0])-self.G0)/(self.G1-self.G0)
-
         # Get Limits of Conductance
         self.G0=Gset[pset==0].mean()
         self.G1=Gset[pset==N].mean()
-        # print(self.G0*1e6)
-        # print(self.G1*1e6)
 
         #Subtract G0
         Gset=(Gset-self.G0)
@@ -1347,7 +1244,6 @@ class Memristor:
         #Normalize
         Gset_norm=Gset/(self.G1-self.G0)
         Greset_norm=Greset/(self.G1-self.G0)
-
 
         #Fit
         popt_s, pcov_s = curve_fit(self.Lin_Exp_Set_3params, pset, Gset_norm,p0=[-0.005,0.05, 0.1]) 
@@ -1399,7 +1295,6 @@ class Memristor:
         m.get_and_set_wf(self.meas_dict_read['device_src'], self.wf_read, self.meas_dict_read['device_ch']) #device
         m.get_and_set_wf(self.meas_dict_read['ref_src'], self.wf_read, self.meas_dict_read['ref_ch']) #reference signal
 
-        #TODO: set gain -> in meas_AWG
         results = m.meas_AWG(self.meas_dict_read, show_plot = plot, save=False, post_processing=True,time_measurement=False,cutoff_read=0.01,HW_messages=False)  #print for debugging
         Gread=results['G_mean'][np.isnan(results['G_mean'])==False].iloc[0] #it is nan every sample/timestep where no mean available
         if print_G:
@@ -1413,8 +1308,6 @@ class Memristor:
         Applies pulses with AWG to go from Gi to Gf
         Clipps Gi and Gf to [0,1]
         """
-        # wf=copy.deepcopy(self.wf_write)
-        #print(wf)
         m=Pulse_Measurement()
         if clipped:
             if G_i==None:
@@ -1442,7 +1335,6 @@ class Memristor:
             T= self.wf_write['T'] #the same for both for now
             V_read= self.wf_write['read_V']
 
-            #TODO: Use read_prepend instead - Create measurement dict in notation of new Code
             wf = {
                 'V' : [V_read]+[V for i in range(n)], # pulse voltages
                 'n' : [1] + [1 for i in range(n)],   # pulse repetitions
@@ -1467,10 +1359,6 @@ class Memristor:
 
             AWG = instruments[device_src]
             
-            #TODO Set gain
-            # if self.wf_write['gain'] is not None:
-            #     AMP = instruments[self.meas_dict_write['amp_type']]
-            #     AMP.set_gain()
             AWG.set_outp(device_ch, 1)
             AWG.trigger()
             AWG.set_outp(device_ch, 0)
@@ -1481,8 +1369,6 @@ class Memristor:
         Writes conductance value G with AWG.
         Clipps Gi and Gf to [0,1]
         """
-        # wf=copy.deepcopy(self.wf_write)
-        #print(wf)
         m=Pulse_Measurement()
         if G_i==None:
             G_i = np.clip(self.read(print_G=False), 0, 1)
@@ -1532,10 +1418,6 @@ class Memristor:
 
             AWG = instruments[device_src]
             
-            #TODO Set gain
-            # if self.wf_write['gain'] is not None:
-            #     AMP = instruments[self.meas_dict_write['amp_type']]
-            #     AMP.set_gain()
             AWG.set_outp(device_ch, 1)
             AWG.trigger()
             AWG.set_outp(device_ch, 0)
