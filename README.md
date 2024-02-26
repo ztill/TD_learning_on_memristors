@@ -14,6 +14,7 @@ $ git clone https://github.com/ztill/TD_learning_on_memristors.git
 # Install and activate base anaconda environment
 conda env create -n baseTD --file baseTD.yml
 conda activate baseTD
+
 #Train T-maze by executing the notebook: Grid_Search_Tmaze.ipynb
 #Train Morris water-maze running the script: python Watermaze_grid_search.py
 ```
