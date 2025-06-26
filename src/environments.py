@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 
 import matplotlib
 from scipy.special import softmax
+from matplotlib.colors import Normalize
+import matplotlib.ticker as ticker
 
 
 class TMaze:
@@ -339,7 +341,7 @@ class WaterMaze:
         cbar.set_label("Action probability")
         # ax.set_title("Policy map")
 
-    def render_values(self, net, ax, show_rbf=False,lvls=10,colormap=matplotlib.cm.get_cmap("jet")):
+    def render_values(self, net, ax, show_rbf=False,lvls=10,ticks=None,colormap=matplotlib.cm.get_cmap("jet")):
         """
         Visualises the v(s) function for all possible states.
         """
@@ -353,7 +355,7 @@ class WaterMaze:
             for j in range(101):
                 values[i, j] = net.value(self.get_rbf((xs[i], ys[j])))
 
-        # cs = ax.contourf(X, Y, values, levels=10, cmap="hot", zorder=-1)
+        #Version not normalized
         cs = ax.contourf(X, Y, values, levels=lvls, cmap=colormap, zorder=-1)
 
         # Plot U shape
@@ -363,15 +365,11 @@ class WaterMaze:
         # Plot outside boundaries
         ax.plot([-6, -6, 6, 6, -6], [-6, 6, 6, -6, -6], 'black', alpha=1,linewidth=0.3)
 
-        # if show_rbf:
-        #     print("rbf")
-        #     for x in self.x_pos:
-        #         for y in self.y_pos:
-        #             ax.plot(x, y, color="black", markersize=3,
-        #                      alpha=0.5, zorder=3)
 
-        # ax.set_xlabel("x")
-        # ax.set_ylabel("y")
+        #Colorbar
         cbar = plt.colorbar(cs, ax=ax)
         cbar.set_label("Value")
-        # ax.set_title("Value map")
+        if ticks is None:
+            ticks= np.linspace(values.min(), values.max(), num=7)
+        cbar.set_ticks(ticks)        
+        cbar.ax.yaxis.set_major_formatter(ticker.FormatStrFormatter('%.2f'))
