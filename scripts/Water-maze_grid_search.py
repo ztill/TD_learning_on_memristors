@@ -22,12 +22,7 @@ import json
 # Function for update of actor weights using multiprocessing 
 def update_actor_complete_indiv_memristor(rands_a,i,j,theta,d_t):
     np.random.seed(rands_a)
-    # print("a_weight:",i,j, 'Rand. Nr:',np.random.normal(0.5,1),flush=True)
-
-    # Using Multiple Memristors
     theta, _ = m[mapping_actor[i,j]][0].update_syn_w_emulated(theta, d_t, update_type=RL_settings['update_type'], noise_type=RL_settings['noise_type'], pulse_calc=RL_settings['pulse_calc'])
-    # Using one Memristor (Here m[3][0])
-    #theta, _ = m[3][0].update_syn_w_emulated(theta, d_t, update_type=RL_settings['update_type'], noise_type=RL_settings['noise_type'], pulse_calc=RL_settings['pulse_calc'])
     return theta
     
 def get_device_name(word):
@@ -136,10 +131,10 @@ m=memristors
 save=True
 
 ## Savepath
-path='/Users/till/Downloads/grid_search/random_mapping_fine/'
+path='results/water-maze/'
 
 # Name of Savefile
-name=f'Fine_Grid_Search_50k_step1p5_LR0p07_gamma0p975_multiprocessing_random_mapping_5'
+name=f'Grid_Search.pkl'
 
 # Environment specs
 no_rbf = 11
@@ -158,40 +153,36 @@ for i in range(no_states):
 n_processes=4
 
 # Algorithm specs
-lrs= [0.07] #list of learning rates for grid search
-Ts= [0.075] #list of softmax temperature  for grid search
+lrs= [0.04] #list of learning rates for grid search
+Ts= [0.15] #list of softmax temperature  for grid search
+gammas = [0.975] #discount rate
 
-gammas = [0.975]
-step_sizes = [1.5]
-std_devs_rbf=[0.75] #0.75 used standard
-threshold=0.0025 #threshold of quantization to 1 pulse minimum
-num_episodes = [50000]
+step_sizes = [1.5] #step size within environment
+std_devs_rbf=[0.75] #standard deviation of Gaussian functions in RBF
+threshold=0.0025 #threshold to cut off all updates which are below 1 pulse
+num_episodes = [20000] 
 
-max_iter = 300
-n_seeds=100 #number of seeds per learning setting
+max_iter = 300 #max iterations per episode
+n_seeds=100 #number of seeds per learning parameter
 seeds=np.arange(n_seeds)
 chunk_size = 1 #averaging bin size for number of steps and fraction that reaches reward 
 
-render_seed=False
-render=False #render trajectory
-plot=False
+render_seed=False #if desired, the starting location for every seed can be plotted
 
 snapshot = 1000 #interval for snapshots
 results_interval = 100 #interval at the end where mean of weights is calculated
 
 # Memristor Emulation Settings
 RL_settings={
-    'update_type': 'model', #options: "ideal", "model", "random cycle"
-    'noise_type': 'set reset separate', #options: None, "constant", "set reset separate", "cycle noise"'
-    'pulse_calc': 'linear' #options: 'model' (normal update), 'linear' (linear update) 
+    'update_type': 'model', 
+    'noise_type': 'set reset separate', 
+    'pulse_calc': 'linear'
 }
-
 
 ######## ######### ######### #########
 #### Run/Grid Search #########
 ######### ######### ######### #########
 results=[]
-
 if __name__ == '__main__':
     print('Filename:',name)
     for num_episode in num_episodes:
@@ -239,8 +230,7 @@ if __name__ == '__main__':
                                     if render_seed:
                                         env.render()
 
-                                    # Initialize weights to 0.5
-                                    net.w_a += 0.5
+                                    # Initialize steps to reward and fraction reward reached
                                     rewards = np.zeros(num_chunks)
                                     lengths = np.zeros(num_chunks)
 
@@ -283,7 +273,7 @@ if __name__ == '__main__':
                                             delta_w[np.abs(delta_w)<threshold]=0
                                             delta_theta[np.abs(delta_theta)<threshold]=0
 
-                                            #------- Options with Cutoff in Updates-------------
+                                            #------- Cutoff Updates below threshold-------------
                                             nonzero_indices_v = np.nonzero(delta_w)
                                             nonzero_indices_a = np.nonzero(delta_theta)
                                             n_jobs_critic=len(nonzero_indices_v[0])
@@ -308,7 +298,6 @@ if __name__ == '__main__':
 
                                             #Save Snapshots of Weights
                                             if ((i>0) and ((i % snapshot) == 0) and (iteration == 0)):
-                                                # print("Snap at Episode", i)
                                                 w_a_snap[snap_id] = net.w_a
                                                 w_v_snap[snap_id] = net.w_v
                                                 snap_id += 1
@@ -348,35 +337,9 @@ if __name__ == '__main__':
                                     snapshot_list_actor.append(w_a_snap)
                                     snapshot_list_critic.append(w_v_snap)
 
-
                                     print(f'Final #steps',int(lengths[-1]))
                                     print(f'Final reward fraction',round(rewards[-1],3))
 
-                                    if render:
-                                        env.render()
-
-                                    #  --Plot---
-                                    if plot:
-                                        plot_points = (np.arange(num_chunks) + 1) * chunk_size
-
-                                        fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, dpi=400, figsize=(4, 3))
-
-                                        ax1.plot(plot_points, rewards)
-                                        ax1.set_title("Fraction of episodes where the goal is \nreached before %d iterations" % 300) # Max iterations is
-                                        ax1.set_xlabel("Episode")
-                                        ax1.set_ylabel("Fraction")
-
-                                        ax2.plot(plot_points, lengths)
-                                        ax2.set_title("Episode length over time")
-                                        ax2.set_xlabel("Episode")
-                                        ax2.set_ylabel("Episode length")
-
-                                        env.render_actions(net, ax3, dense=True, magnitude=True)
-
-                                        env.render_values(net, ax4, show_rbf=True)
-
-                                        fig.subplots_adjust(wspace=0.5, hspace=0.5)
-                                        fig.show()
                                 
                                 #Calc Mean of Seeds
                                 mean_final_steps=np.mean(final_steps_list)
