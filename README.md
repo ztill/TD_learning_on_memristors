@@ -15,10 +15,11 @@ $ git clone https://github.com/ztill/TD_learning_on_memristors.git
 conda env create -n baseTD --file baseTD.yml
 conda activate baseTD
 
-#Train T-maze by executing the notebook: Grid_Search_Tmaze.ipynb
-#Train Morris water-maze running the script: python Watermaze_grid_search.py
+#Train T-maze and plot result by executing the jupyter notebook T-maze_emulation_and_plot.ipynb
+#Train Morris water-maze running the script Watermaze_grid_search.py
+#Plot the results of the Morris water-maze emulation by executing the notebook Plot_Water-maze_Figure_Paper.ipynb
 ```
 
-## Experiments in the paper
-The plots displayed in the paper can be generated using the scripts:  Grid_Search_Tmaze.ipynb and Plot_Watermaze_Figure_Paper.ipynb
+## Memristor emulations in the paper
+The memristor emulations displayed in Figure 5 of the paper can be generated using the jupyter notebook Plot_Water-maze_Figure_Paper.ipynb
 
